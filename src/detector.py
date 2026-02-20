@@ -6,7 +6,12 @@ import numpy as np
 class HandDetector:
     def __init__(self):
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands()
+        self.hands = self.mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=2,
+            min_detection_confidence=0.6,
+            min_tracking_confidence=0.5,
+        )
         self.mp_draw = mp.solutions.drawing_utils
 
     def detect(self, frame):
@@ -71,6 +76,7 @@ class FaceMeshDetector:
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             static_image_mode=False,
             max_num_faces=max_num_faces,
+            refine_landmarks=True,
             min_detection_confidence=min_detection_confidence,
             min_tracking_confidence=min_tracking_confidence,
         )
@@ -118,7 +124,7 @@ class FaceMeshDetector:
             points.append((int(pt.x * frame_width), int(pt.y * frame_height)))
         return points
 
-    def draw_mouth(self, frame, results, color=(0, 140, 255), thickness=2):
+    def draw(self, frame, results, color=(0, 140, 255), thickness=2):
         if not results.multi_face_landmarks:
             return
 
@@ -133,6 +139,18 @@ class FaceMeshDetector:
 
         for i in range(len(inner_points) - 1):
             cv2.line(frame, inner_points[i], inner_points[i + 1], (255, 255, 255), 1)
+
+    def classify_mouth_state(self, results, frame_shape):
+        ratio = self.mouth_ratio(results, frame_shape)
+        if ratio is None:
+            return "No Face"
+        if ratio > 0.35:
+            return "You are laughing"
+        if ratio > 0.22:
+            return "You are smiling"
+        if ratio > 0.16:
+            return "Mouth open"
+        return "Mouth closed"
 
     def detect_teeth(self, frame, results):
         if not results.multi_face_landmarks:
