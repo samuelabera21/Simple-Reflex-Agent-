@@ -5,7 +5,7 @@ GestureSense is a real-time computer vision application built with OpenCV and Me
 
 ## Architecture (Simple Reflex Agent)
 The system follows a pure reflex model:
-- No memory of past states
+- No memory of past states 
 - No learning or model training
 - No prediction
 - Decision is made only from current frame input
